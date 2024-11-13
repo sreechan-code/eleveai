@@ -5,7 +5,7 @@ import pyttsx3
 import threading
 
 # Configure the API key directly
-genai.configure(api_key="AIzaSyBN9ZlpzLLoHklPYo7d_7y7Uw9UW1wlE9E")
+genai.configure(api_key="YOUR_API_KEY")
 
 # Function to load the Gemini Pro model and get a response
 model = genai.GenerativeModel("gemini-pro")
@@ -21,21 +21,19 @@ def get_gemini_response(question):
 
 # Initialize Text-to-Speech engine
 tts_engine = pyttsx3.init()
-tts_engine.setProperty('rate', 150)  # Adjust the speaking rate if necessary
+tts_engine.setProperty('rate', 150)
 
 def speak_text(text):
     def run_tts():
         tts_engine.say(text)
         tts_engine.runAndWait()
     
-    # Run TTS in a separate thread to prevent blocking the main thread
     tts_thread = threading.Thread(target=run_tts)
     tts_thread.start()
 
 # Streamlit app configuration
 st.set_page_config(page_title="eleAi")
 
-# CSS for positioning the logo on the top left
 st.markdown("""
     <style>
     .top-left-logo {
@@ -64,15 +62,12 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Display team logo in the top-left corner
-st.sidebar.image("teamlogo.png", use_column_width=True) 
+st.sidebar.image("teamlogo.png", use_column_width=True)
 
-# Streamlit app title
 st.markdown("<h1>Welcome to eleAi</h1>", unsafe_allow_html=True)
 
-# Options for input mode: Text or Voice
 mode = st.radio("Select Input Mode:", options=["Speak", "Type"], index=1)
 
-# Voice input handler
 if mode == "Speak":
     if st.button("Record Your Question"):
         recognizer = sr.Recognizer()
@@ -89,14 +84,12 @@ if mode == "Speak":
                     full_response = ""
 
                     for chunk in response:
-                        # Ensure the chunk has the attribute 'text' and handle any error in content access
                         if hasattr(chunk, 'text') and chunk.text:
                             st.write(chunk.text)
                             full_response += chunk.text
                         else:
-                            st.warning("No valid response received. The model might have detected copyrighted content.")
+                            st.warning("No valid response received.")
 
-                    # Speak the response if mode is "Speak"
                     if full_response:
                         speak_text(full_response)
 
@@ -104,21 +97,24 @@ if mode == "Speak":
                 st.error("Sorry, I could not understand your voice.")
             except sr.RequestError:
                 st.error("Could not request results; please check your internet connection.")
+            except Exception as e:
+                st.error(f"An unexpected error occurred: {e}")
 
-# Text input handler
 elif mode == "Type":
-    input_text = st.text_input("Type your question and press Enter:", key="input", on_change=lambda: st.session_state.update({'response_trigger': True}))
+    input_text = st.text_input("Type your question and press Enter:", key="input")
 
-    if st.session_state.get('response_trigger', False) and input_text:
-        st.session_state['response_trigger'] = False  # Reset the trigger
+    if input_text:
         response = get_gemini_response(input_text)
         if response:
             st.subheader("Response:")
             full_response = ""
             for chunk in response:
-                # Ensure the chunk has the attribute 'text' and handle any error in content access
                 if hasattr(chunk, 'text') and chunk.text:
                     st.write(chunk.text)
                     full_response += chunk.text
                 else:
-                    st.warning("No valid response received. The model might have detected copyrighted content.")
+                    st.warning("No valid response received.")
+
+        # Speak the response if present
+        if full_response:
+            speak_text(full_response)
