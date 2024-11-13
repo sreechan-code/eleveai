@@ -27,10 +27,12 @@ def get_gemini_response(question):
 # Initialize Text-to-Speech engine (for fallback)
 tts_engine = None
 try:
-    tts_engine = pyttsx3.init()
+    # Attempt to initialize with the sapi5 driver on Windows
+    tts_engine = pyttsx3.init(driverName='sapi5')  # For Windows, uses SAPI5
     tts_engine.setProperty('rate', 150)  # Adjust the speaking rate if necessary
-except RuntimeError:
-    st.warning("pyttsx3 failed to initialize, using gTTS instead.")
+except RuntimeError as e:
+    st.warning(f"pyttsx3 failed to initialize: {e}, using gTTS instead.")
+    tts_engine = None
 
 def speak_text(text):
     if tts_engine:
