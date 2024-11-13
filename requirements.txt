@@ -3,6 +3,4 @@ google-generativeai
 speechrecognition
 pyttsx3
 gTTS
-
-
-
+pyaudio
