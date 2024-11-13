@@ -6,6 +6,9 @@ import threading
 from gtts import gTTS
 import os
 
+# Streamlit app configuration (Move this to the very top)
+st.set_page_config(page_title="eleAi")
+
 # Configure the API key directly
 genai.configure(api_key="AIzaSyBN9ZlpzLLoHklPYo7d_7y7Uw9UW1wlE9E")
 
@@ -44,9 +47,6 @@ def speak_text(text):
         tts = gTTS(text=text, lang='en')
         tts.save("response.mp3")
         os.system("mpg321 response.mp3")  # Make sure mpg321 is installed to play audio
-
-# Streamlit app configuration
-st.set_page_config(page_title="eleAi")
 
 # CSS for positioning the logo on the top left
 st.markdown("""
