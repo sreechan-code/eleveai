@@ -3,6 +3,8 @@ import google.generativeai as genai
 import speech_recognition as sr
 import pyttsx3
 import threading
+from gtts import gTTS
+import os
 
 # Configure the API key directly
 genai.configure(api_key="AIzaSyBN9ZlpzLLoHklPYo7d_7y7Uw9UW1wlE9E")
@@ -19,18 +21,29 @@ def get_gemini_response(question):
         st.error(f"Error in generating response: {str(e)}")
         return None
 
-# Initialize Text-to-Speech engine
-tts_engine = pyttsx3.init()
-tts_engine.setProperty('rate', 150)  # Adjust the speaking rate if necessary
+# Initialize Text-to-Speech engine (for fallback)
+tts_engine = None
+try:
+    tts_engine = pyttsx3.init()
+    tts_engine.setProperty('rate', 150)  # Adjust the speaking rate if necessary
+except RuntimeError:
+    st.warning("pyttsx3 failed to initialize, using gTTS instead.")
 
 def speak_text(text):
-    def run_tts():
-        tts_engine.say(text)
-        tts_engine.runAndWait()
-    
-    # Run TTS in a separate thread to prevent blocking the main thread
-    tts_thread = threading.Thread(target=run_tts)
-    tts_thread.start()
+    if tts_engine:
+        # Using pyttsx3 if it's initialized
+        def run_tts():
+            tts_engine.say(text)
+            tts_engine.runAndWait()
+
+        # Run TTS in a separate thread to prevent blocking the main thread
+        tts_thread = threading.Thread(target=run_tts)
+        tts_thread.start()
+    else:
+        # Fallback to gTTS if pyttsx3 is not available
+        tts = gTTS(text=text, lang='en')
+        tts.save("response.mp3")
+        os.system("mpg321 response.mp3")  # Make sure mpg321 is installed to play audio
 
 # Streamlit app configuration
 st.set_page_config(page_title="eleAi")
