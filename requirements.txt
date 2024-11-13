@@ -2,4 +2,3 @@ streamlit
 google-generativeai
 SpeechRecognition
 pyttsx3
-sounddevice  # Use as an alternative to pyaudio for microphone access
